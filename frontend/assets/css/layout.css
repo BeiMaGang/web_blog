@@ -1,0 +1,13 @@
+.layout_left{
+  float: left;
+  width: 10%;
+  height: 100%;
+  position: relative;
+
+}
+.layout_right{
+  float: right;
+  width: 90%;
+  height: 100%;
+  position: relative;
+}

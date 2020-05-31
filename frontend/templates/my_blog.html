@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="../assets/css/main.css">
+        <link rel="stylesheet" href="../assets/libs/particles/css/style.css">
+	    <link rel="stylesheet" href="../assets/css/base.css">
+	    <link rel="stylesheet" href="../assets/css/login.css"/>
+	    <link rel="stylesheet" href="../assets/css/layout.css"/>
+        <title>博客</title>
+    </head>
+    <body onload="get_user()">
+        <!-- particles.js container -->
+        <div id="particles-js"></div>
+        <div id="background">
+            <div class="layout_left">
+                <div class="side-bar">
+                <div class="header">
+                    <h3 id="nickname_here">您的昵称</h3>
+                    <a href="blogs.html" class="logo">所有博客</a>
+                    <br/>
+                    <a href="concern_blog.html" class="logo">关注博客</a>
+                    <br/> 
+                    <a href="write_blog.html" class="logo">发表博客</a>
+                    <br/>
+                    <a href="login.html" onclick="log_out()" class="logo">退出登录</a>
+                </div>
+                <div class="nav">
+                    <p style="font-size:20px">关注列表：</p>
+                    <ul id = "concern_ul">
+                    </ul>
+                </div>
+            </div>
+            </div>
+            <div class="layout_right">
+                <div class="main">
+                    <div class="article-list" id="div_articles">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="../assets/libs/jquery-1.12.4/jquery.min.js"></script>
+	    <script src="../assets/libs/sweetalert2/sweetalert2.min.js"></script>
+	    <script src="../assets/libs/particles/particles.min.js"></script>
+	    <script src="../assets/libs/particles/js/app.js"></script>
+	    <script src="../assets/route_conf.js"></script>
+	    <script src="../assets/util/md5.js"></script>
+	    <script src="../assets/util/request.js"></script>
+        <script>
+            function get_user(){
+                data={
+                }
+    	        request_get(
+    		        "/user/get_user_info",data,
+				    function (d) {
+					    if(d.status == 200){
+                        //跳转
+                            var ddata = d.data;
+                            document.getElementById("nickname_here").innerHTML=ddata.nick_name;
+                            for (var i=0;i<ddata.concerns.length;i++){
+                                var concern_li = document.createElement("li");
+                                concern_li.id="concern"+String(i);
+                                var ul = document.getElementById("concern_ul");
+                                ul.appendChild(concern_li);
+
+                                document.getElementById("concern"+String(i)).innerHTML=ddata.concerns[i].nick_name;
+                            }
+                        }
+                        else{
+					        alert(d.message);
+					    } 
+                    }
+                )
+                data = {
+                    type: 0,
+                    blog_id : 1
+                }
+                request_get(
+                    "/blog/get_blogs",
+                    data,
+                    function(d){
+                        if(d.status == 200){
+                        //跳转
+                            var ddata = d.data;
+                            for (var i=0;i<ddata.length;i++){
+                                var div_item = document.createElement("div");
+                                div_item.className="item";
+
+                                var href_a = document.createElement("a");
+                                href_a.href="article.html?blog_id="+ddata[i].id
+                                href_a.className="title1";
+                                href_a.id="blog_name"+String(i);
+                                div_item.appendChild(href_a);
+
+                                var div_status = document.createElement("div");
+                                div_status.className="status";
+                                div_status.id="flag"+String(i);
+                                div_status.style.fontSize="5px";
+                                div_item.appendChild(div_status);
+
+                                var div_content = document.createElement("div");
+                                div_content.className="content";
+                                div_content.id="Thecontent"+String(i);
+                                div_item.appendChild(div_content);
+
+                                var articles=document.getElementById("div_articles");
+                                articles.appendChild(div_item);
+
+                                document.getElementById("blog_name"+String(i)).innerHTML=ddata[i].title;
+                                document.getElementById("flag"+String(i)).innerHTML="创建时间:"+ddata[i].create_time+" 用户名称:"+ddata[i].author["nick_name"];
+                                document.getElementById("Thecontent"+String(i)).innerHTML=ddata[i].content;
+                            }
+			            }else{
+				            alert(d.message);
+			            } 
+                    }
+                )
+            }
+        </script>
+        <script>
+            function log_out(){
+                post(
+                    "/auth/logout",
+                    {},
+                    function(d){
+                        if(d.status == 200){
+                        //跳转
+				        }else{
+					        alert(d.message);
+				        } 
+                    }
+                )
+            }
+        </script>
+    </body>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="background-color: white">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="../assets/css/main.css">
+        <link rel="stylesheet" href="../assets/libs/particles/css/style.css">
+	    <link rel="stylesheet" href="../assets/css/base.css">
+        <link rel="stylesheet" href="../assets/css/login.css" />
+        <link rel="stylesheet" href="../assets/css/comment.css">
+        <link rel="stylesheet" href="../assets/css/layout.css">
+        <title>博客</title>
+    </head>
+    <body onload="get_blog()">
+        <!-- particles.js container -->
+        <div id="particles-js"></div>
+        <div id="background">
+            <div class="layout_left">
+                <div class="side-bar">
+                <div class="header">
+                    <a href="blogs.html" class="logo">返回</a>
+                    <br/>
+                    <a onclick="gotorewrite()" class="logo">修改博客</a>
+                </div>
+            </div>
+            </div>
+            <div class="layout_right">
+                <div class="main">
+                <div class="article">
+                    <h1 class="title" id="mytitle"></h1>
+                    <div class="status" id="flag"></div>
+                    <div class="content" id="content"></div>
+                </div>
+                </div>
+                <div class="comments">
+                    <div class="comment-wrap input-comment">
+                        <div class="comment-block">
+                            <form action="" class="comment-text">
+                                <textarea  id="newComment" cols="30" rows="5" placeholder="发送你的评论" style="font-size: 15px;"></textarea>
+                                <button type="button" onclick="write_comment()" style="line-height: 1;border: 5px solid #eee;padding: 5px 10px;font-size: 20px;display: inline-block; margin-bottom: 10px;">提交</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="../assets/libs/jquery-1.12.4/jquery.min.js"></script>
+	    <script src="../assets/libs/sweetalert2/sweetalert2.min.js"></script>
+	    <script src="../assets/libs/particles/particles.min.js"></script>
+	    <script src="../assets/libs/particles/js/app.js"></script>
+	    <script src="../assets/route_conf.js"></script>
+	    <script src="../assets/util/md5.js"></script>
+	    <script src="../assets/util/request.js"></script>
+        <script>
+            redirect_login();
+        </script>
+        <script>
+            function gotorewrite(){
+                window.location.replace("rewrite_blogs.html?blog_id="+getParams("blog_id"))
+            }
+        </script>
+        <script>
+            function write_comment(){
+                data = {
+                    blog_id : blogid,
+                    comment : $('#newComment').val()
+                }
+                post(
+                    "/comment/comment_blog",data,
+                    function(d){
+                        var tmp = "<div class=\"comment-block\">\n" +
+                            "                        <p class=\"comment-text\">replace_comment</p>\n" +
+                            "                        <div class=\"bottom-comment\">\n" +
+                            "                            <div class=\"comment-date\"> replace_date</div>\n" +
+                            "                            <ul class=\"comment-actions\">\n" +
+                            "                                <li class=\"complain\">Complain</li>\n" +
+                            "                            </ul>\n" +
+                            "                        </div>\n" +
+                            "                    </div>"
+                        var new_comment = document.createElement("div");
+                        new_comment.className = "comment-wrap";
+                        new_comment.innerHTML = tmp.replace("replace_comment", d.data["content"]).replace("replace_date", d.data["create_time"]).replace("Complain", d.data["user"]["nick_name"])
+                        var parent = document.getElementsByClassName("comments")[0];
+                        var input = document.getElementsByClassName("input-comment")[0];
+                        parent.insertBefore(new_comment, input.nextSibling)
+                    }
+                )
+            }
+        </script>
+        <script>
+            blogid = getParams("blog_id");
+            function get_blog(){       
+                data = {
+                    blog_id:blogid
+                }
+                request_get(
+    		        "/blog/article",data,
+				    function (d) {
+					    if(d.status == 200){
+
+                            var tmp = "<div class=\"comment-block\">\n" +
+                                "                        <p class=\"comment-text\">replace_comment</p>\n" +
+                                "                        <div class=\"bottom-comment\">\n" +
+                                "                            <div class=\"comment-date\"> replace_date</div>\n" +
+                                "                            <ul class=\"comment-actions\">\n" +
+                                "                                <li class=\"complain\">Complain</li>\n" +
+                                "                            </ul>\n" +
+                                "                        </div>\n" +
+                                "                    </div>"
+                            var data = d.data;
+                            document.getElementById("mytitle").innerHTML=data.title;
+                            document.getElementById("flag").innerHTML="创建时间:"+data.create_time+" 用户名称:"+data.author["nick_name"];
+                            document.getElementById("content").innerHTML = data.content;
+                            var comments_node = document.getElementsByClassName("comments")[0];
+                            for(var i = 0; i < data.comments.length; i++){
+                                var div = document.createElement("div");
+                                div.setAttribute("class", "comment-wrap");
+                                div.innerHTML = tmp.replace("replace_comment", data.comments[i]["content"]).replace("replace_date", data.comments[i]["create_time"]).replace("Complain", data.comments[i]["user"]["nick_name"]);
+                                comments_node.appendChild(div);
+                            }
+					    }else{
+					        alert(d.message);
+					    } 
+                    }
+                )
+            }
+        </script>
+    </body>
+</html>
